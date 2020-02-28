@@ -20,13 +20,7 @@
 	"conflict": {
 		"typo3/cms": "*"
 	},
-	"replace": {
-		"seo": "*"
-	},
 	"extra": {
-		"branch-alias": {
-			"dev-master": "10.1.x-dev"
-		},
 		"typo3/cms": {
 			"extension-key": "seo",
 			"Package": {

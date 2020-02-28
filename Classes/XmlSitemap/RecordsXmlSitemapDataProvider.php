@@ -148,6 +148,7 @@ class RecordsXmlSitemapDataProvider extends AbstractXmlSitemapDataProvider
             'parameter' => $pageId,
             'additionalParams' => $additionalParamsString ? '&' . $additionalParamsString : '',
             'forceAbsoluteUrl' => 1,
+            'useCacheHash' => $this->config['url']['useCacheHash'] ?? 0
         ];
 
         $data['loc'] = $this->cObj->typoLink_URL($typoLinkConfig);

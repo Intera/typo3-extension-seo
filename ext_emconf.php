@@ -7,11 +7,13 @@ $EM_CONF[$_EXTKEY] = [
     'author_email' => 'typo3cms@typo3.org',
     'author_company' => '',
     'state' => 'stable',
+    'uploadfolder' => 0,
+    'createDirs' => '',
     'clearCacheOnLoad' => 0,
-    'version' => '10.1.0',
+    'version' => '9.5.14',
     'constraints' => [
         'depends' => [
-            'typo3' => '9.5.13'
+            'typo3' => '9.5.14'
         ],
         'conflicts' => [],
         'suggests' => [],
