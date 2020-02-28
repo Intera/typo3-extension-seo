@@ -23,16 +23,13 @@ use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 class PagesXmlSitemapDataProviderTest extends UnitTestCase
 {
-    protected $resetSingletonInstances = true;
-
     /**
      * @var array
      */
     protected $items;
 
-    public function setUp(): void
+    public function setUp()
     {
-        parent::setUp();
         $this->items = [
             [
                 'loc' => 'https://yourdomain.com/page-1',
@@ -68,6 +65,7 @@ class PagesXmlSitemapDataProviderTest extends UnitTestCase
             '',
             true
         );
+        $subject->expects($this->any())->method('generateItems')->willReturn(null);
         $this->assertEquals($key, $subject->getKey());
     }
 

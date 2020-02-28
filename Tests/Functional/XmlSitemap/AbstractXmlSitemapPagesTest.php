@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace TYPO3\CMS\Frontend\Tests\Functional\XmlSitemap;
+namespace TYPO3\CMS\Seo\Tests\Functional\XmlSitemap;
 
 /*
  * This file is part of the TYPO3 CMS project.
@@ -18,12 +18,19 @@ namespace TYPO3\CMS\Frontend\Tests\Functional\XmlSitemap;
 
 use TYPO3\CMS\Frontend\Tests\Functional\SiteHandling\AbstractTestCase;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
+use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalResponse;
 
-/**
- * Contains functional tests for the XmlSitemap Index
- */
-class XmlSitemapIndexTest extends AbstractTestCase
+abstract class AbstractXmlSitemapPagesTest extends AbstractTestCase
 {
+    /**
+     * @var array
+     */
+    protected const LANGUAGE_PRESETS = [
+        'EN' => ['id' => 0, 'title' => 'English', 'locale' => 'en_US.UTF8', 'iso' => 'en', 'hrefLang' => 'en-US', 'direction' => ''],
+        'FR' => ['id' => 1, 'title' => 'French', 'locale' => 'fr_FR.UTF8', 'iso' => 'fr', 'hrefLang' => 'fr-FR', 'direction' => ''],
+        'DE' => ['id' => 2, 'title' => 'German', 'locale' => 'de_DE.UTF8', 'iso' => 'de', 'hrefLang' => 'de-DE', 'direction' => ''],
+    ];
+
     /**
      * @var string[]
      */
@@ -31,7 +38,7 @@ class XmlSitemapIndexTest extends AbstractTestCase
         'core', 'frontend', 'seo'
     ];
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->importDataSet('EXT:seo/Tests/Functional/Fixtures/pages-sitemap.xml');
@@ -42,35 +49,26 @@ class XmlSitemapIndexTest extends AbstractTestCase
                 'setup' => ['EXT:seo/Configuration/TypoScript/XmlSitemap/setup.typoscript']
             ]
         );
-    }
 
-    /**
-     * @test
-     */
-    public function checkIfSiteMapIndexContainsPagesSitemap(): void
-    {
         $this->writeSiteConfiguration(
             'website-local',
             $this->buildSiteConfiguration(1, 'http://localhost/'),
             [
-                $this->buildDefaultLanguageConfiguration('EN', '/')
+                $this->buildDefaultLanguageConfiguration('EN', '/'),
+                $this->buildLanguageConfiguration('FR', '/fr/'),
+                $this->buildLanguageConfiguration('DE', '/de/', ['FR'])
             ]
         );
+    }
 
-        $response = $this->executeFrontendRequest(
-            (new InternalRequest('http://localhost/'))->withQueryParameters([
+    protected function getResponse(string $uri = 'http://localhost/'): InternalResponse
+    {
+        return $this->executeFrontendRequest(
+            (new InternalRequest($uri))->withQueryParameters([
                 'id' => 1,
-                'type' => 1533906435
+                'type' => 1533906435,
+                'sitemap' => 'pages'
             ])
         );
-
-        $this->assertEquals(200, $response->getStatusCode());
-        $this->assertArrayHasKey('Content-Length', $response->getHeaders());
-        $this->assertGreaterThan(0, $response->getHeader('Content-Length')[0]);
-        $this->assertArrayHasKey('Content-Type', $response->getHeaders());
-        $this->assertEquals('application/xml;charset=utf-8', $response->getHeader('Content-Type')[0]);
-        $this->assertArrayHasKey('X-Robots-Tag', $response->getHeaders());
-        $this->assertEquals('noindex', $response->getHeader('X-Robots-Tag')[0]);
-        $this->assertRegExp('/<loc>http:\/\/localhost\/\?sitemap=pages&amp;type=1533906435&amp;cHash=[^<]+<\/loc>/', (string)$response->getBody());
     }
 }

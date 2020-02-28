@@ -33,12 +33,11 @@ class XmlSitemapRecordsTest extends AbstractTestCase
         'seo'
     ];
 
-    protected function setUp(): void
+    protected function setUp()
     {
         parent::setUp();
         $this->importDataSet('EXT:seo/Tests/Functional/Fixtures/pages-sitemap.xml');
         $this->importDataSet('EXT:seo/Tests/Functional/Fixtures/sys_category.xml');
-        $this->importDataSet('EXT:seo/Tests/Functional/Fixtures/tt_content.xml');
         $this->setUpFrontendRootPage(
             1,
             [
@@ -46,7 +45,6 @@ class XmlSitemapRecordsTest extends AbstractTestCase
                 'setup' => [
                     'EXT:seo/Configuration/TypoScript/XmlSitemap/setup.typoscript',
                     'EXT:seo/Tests/Functional/Fixtures/records.typoscript',
-                    'EXT:seo/Tests/Functional/Fixtures/content.typoscript'
                 ],
             ]
         );
@@ -81,16 +79,20 @@ class XmlSitemapRecordsTest extends AbstractTestCase
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertArrayHasKey('Content-Length', $response->getHeaders());
+        $this->assertEquals('application/xml;charset=utf-8', $response->getHeader('Content-Type')[0]);
+        $this->assertArrayHasKey('X-Robots-Tag', $response->getHeaders());
+        $this->assertEquals('noindex', $response->getHeader('X-Robots-Tag')[0]);
+        $this->assertArrayHasKey('Content-Length', $response->getHeaders());
         $stream = $response->getBody();
         $stream->rewind();
         $content = $stream->getContents();
 
         foreach ($expectedEntries as $expectedEntry) {
-            self::assertStringContainsString($expectedEntry, $content);
+            self::assertContains($expectedEntry, $content);
         }
 
         foreach ($notExpectedEntries as $notExpectedEntry) {
-            self::assertStringNotContainsString($notExpectedEntry, $content);
+            self::assertNotContains($notExpectedEntry, $content);
         }
 
         $this->assertGreaterThan(0, $response->getHeader('Content-Length')[0]);
@@ -107,7 +109,6 @@ class XmlSitemapRecordsTest extends AbstractTestCase
                 [
                     'http://localhost/?tx_example_category%5Bid%5D=1&amp;',
                     'http://localhost/?tx_example_category%5Bid%5D=2&amp;',
-                    '<priority>0.5</priority>'
                 ],
                 [
                     'http://localhost/?tx_example_category%5Bid%5D=3&amp;',
@@ -118,7 +119,6 @@ class XmlSitemapRecordsTest extends AbstractTestCase
                 'http://localhost/fr',
                 [
                     'http://localhost/fr/?tx_example_category%5Bid%5D=3&amp;',
-                    '<priority>0.5</priority>'
                 ],
                 [
                     'http://localhost/fr/?tx_example_category%5Bid%5D=1&amp;',
@@ -128,33 +128,6 @@ class XmlSitemapRecordsTest extends AbstractTestCase
                 ]
             ],
         ];
-    }
-
-    /**
-     * @test
-     */
-    public function checkIfSiteMapIndexContainsCustomChangeFreqAndPriorityValues(): void
-    {
-        $response = $this->executeFrontendRequest(
-            (new InternalRequest('http://localhost/'))->withQueryParameters(
-                [
-                    'id' => 1,
-                    'type' => 1533906435,
-                    'sitemap' => 'content',
-                ]
-            )
-        );
-
-        $this->assertEquals(200, $response->getStatusCode());
-        $this->assertArrayHasKey('Content-Length', $response->getHeaders());
-        $stream = $response->getBody();
-        $stream->rewind();
-        $content = $stream->getContents();
-
-        self::assertStringContainsString('<changefreq>hourly</changefreq>', $content);
-        self::assertStringContainsString('<priority>0.7</priority>', $content);
-
-        $this->assertGreaterThan(0, $response->getHeader('Content-Length')[0]);
     }
 
     /**
